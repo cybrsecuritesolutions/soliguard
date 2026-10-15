@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Run test suite
+        run: npm test
+
+      - name: Smoke run on the sample contract
+        # The linter must exit 1 on the deliberately vulnerable sample and
+        # print a report (finding something is the expected behaviour).
+        run: |
+          node soliguard.js examples/VulnerableToken.sol >/tmp/soliguard-smoke.out 2>&1 || code=$?
+          test -n "${code:-}"
+          test "$code" -eq 1
+          grep -q "SoliGuard report" /tmp/soliguard-smoke.out
+
+      - name: Repo stays clean after runs
+        # The tool must never modify the working tree.
+        run: test -z "$(git status --porcelain)"
