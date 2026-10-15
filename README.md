@@ -1,97 +1,124 @@
 # SoliGuard
 
-**SoliGuard v0.1.0** is a lightweight, dependency-free, heuristic **Solidity static-analysis security linter** — a CLI that scans smart-contract source code for common vulnerability patterns before you even think about an audit.
+**A lightweight, dependency-free, heuristic Solidity static-analysis security linter — pre-audit screening for smart-contract developers.**
 
-> ⚠️ **Honesty notice:** SoliGuard is a heuristic pre-audit screening tool and is **NOT a substitute for a professional security audit**. It reports *potential* issues. Every finding requires manual review: false positives and false negatives are expected.
+![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
+![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D%2018-brightgreen.svg)
+[![CI: GitHub Actions](https://img.shields.io/badge/CI-github%20actions-2088FF)](.github/workflows/ci.yml)
+<!-- TODO: once the repository URL is known, replace the CI badge above with a live
+     workflow-status badge, e.g. https://img.shields.io/github/actions/workflow/status/OWNER/REPO/ci.yml -->
 
-## What it does
+SoliGuard scans Solidity source for common vulnerability patterns and reports them with line numbers, severity, and actionable explanations. It runs on plain Node.js >= 18 — zero runtime dependencies, no compiler required.
 
-SoliGuard reads one `.sol` file (or walks a directory), applies 11 heuristic rules, and produces a report with:
+> **Honesty notice:** SoliGuard is a **heuristic** tool. It flags *potential* issues; false positives and false negatives are expected. It is a pre-audit screening aid — **not** a substitute for a professional security audit.
 
-- a stable **rule id** per finding,
-- a **severity** (`info` / `warning` / `critical`),
-- the offending **line number**,
-- a **snippet** of the matched source, and
-- a short plain-language explanation of the risk.
+## Features
 
-It runs on **plain Node.js ≥ 18 with zero runtime dependencies** — there is nothing to install. No npm packages are needed; the linter is a single file that uses only Node's built-ins (`fs`, `path`).
+- **11 heuristic rules** covering the most common Solidity pitfalls (see the [rule table](#rules))
+- **Zero dependencies** — one CLI file, plain Node.js >= 18
+- **Human-readable reports** (Markdown-style) and **machine-readable JSON** (`--json`)
+- **Severity filtering** (`--min-severity info|warning|critical`)
+- **Recursive directory scanning**
+- **Predictable exit codes** for CI pipelines (`0` clean, `1` findings, `2` usage error)
 
-## Quick start
-
-```bash
-# clone / download the repo, then just run it:
-node soliguard.js path/to/YourContract.sol
-node soliguard.js contracts/            # scan a whole directory
-node soliguard.js path/to/Contract.sol --json
-node soliguard.js path/to/Contract.sol --min-severity warning
-```
-
-Try it on the included sample (an intentionally vulnerable token):
+## Quickstart
 
 ```bash
-node soliguard.js examples/VulnerableToken.sol
+# run on a single file
+node soliguard.js path/to/Contract.sol
+
+# run on a directory (recursive)
+node soliguard.js contracts/
+
+# machine-readable JSON output
+node soliguard.js contracts/ --json
+
+# only report findings at or above a severity
+node soliguard.js Contract.sol --min-severity critical
+
+# list the implemented rules
+node soliguard.js --rules
+
+# run the test suite
+npm test
 ```
-
-The real generated report for that run is committed as [`examples/sample-report.md`](examples/sample-report.md) (and `examples/sample-report.json`).
-
-### Output
-
-- **Default:** a readable Markdown-ish report (`# SoliGuard report`) with a summary, per-finding sections, and the honesty notice in the header.
-- **`--json`:** a machine-readable JSON report (`tool`, `version`, `generatedAt`, `honestyNotice`, `summary`, `files[].findings[]`).
 
 ### Exit codes
 
-| Code | Meaning |
-|------|---------|
-| `0` | Scan completed; no findings at or above the severity threshold (PASS). |
-| `1` | Scan completed; findings exist at or above the threshold (FAIL) — CI-usable. |
-| `2` | Usage or input error (bad flag, missing path, invalid `--min-severity`). |
+| Code | Meaning                                                  |
+| ---- | -------------------------------------------------------- |
+| `0`  | Scan completed, no findings at/above the severity threshold |
+| `1`  | Scan completed, findings exist at/above the threshold    |
+| `2`  | Usage or input error (bad flag, missing path, unreadable file) |
 
-`--min-severity` filters which findings are reported and drives the exit code (default `info`; valid values `info`, `warning`, `critical`).
+## Rules
 
-## Options
+| Rule ID                     | Severity | What it catches                                                       |
+| --------------------------- | -------- | --------------------------------------------------------------------- |
+| `avoid-tx-origin`           | warning  | `tx.origin` used as an authorization signal (phishing/impersonation)  |
+| `unsafe-low-level-calls`    | warning  | `.call` / `.delegatecall` / `.send` / `.transfer` — unchecked failures, reentrancy vectors |
+| `floating-pragma`           | info     | Compiler pragma not pinned to a single version (`^`, `>=`, ...)       |
+| `missing-zero-address-check`| warning  | Address parameters used without an `address(0)` guard                 |
+| `unbounded-loop`            | warning  | Loop bounds depending on storage rather than literals (gas-limit DoS) |
+| `selfdestruct-usage`        | critical | `selfdestruct` — deprecation and removal risk (EIP-4758 / EIP-6780)   |
+| `hardcoded-address`         | warning  | 40-hex address literals outside named constants                       |
+| `timestamp-dependence`      | warning  | `block.timestamp` / `now` used in comparisons (manipulable timing)    |
+| `missing-visibility`        | info     | State variables / functions without explicit visibility               |
+| `deprecated-keywords`       | warning  | Legacy keywords: `suicide`, `blockhash`                               |
+| `assembly-usage`            | info     | Inline assembly bypassing Solidity safety checks                      |
 
+Severity order: `info` < `warning` < `critical`. Full rule descriptions and rationale live in [RULES.md](RULES.md).
+
+## Sample output
+
+This is the real, abridged output of `node soliguard.js examples/VulnerableToken.sol` (the sample is deliberately vulnerable and the run exits with code `1`, as expected):
+
+```text
+# SoliGuard report
+**SoliGuard v0.1.0** — heuristic Solidity static-analysis security linter.
+Generated: 2026-10-15T02:51:29.830Z
+> **Honesty notice:** SoliGuard is a heuristic pre-audit screening tool and is NOT a substitute for a professional security audit.
+> Every finding below is a *potential* issue and requires manual review. False positives and false negatives are expected; nothing here replaces a professional audit.
+## Summary
+- Files scanned: 1
+- Findings (at/above threshold): 21
+  - critical: 1, warning: 11, info: 9
+- Severity threshold (--min-severity): info
+- Result: **FAIL** (exit code 1)
+## Findings — examples/VulnerableToken.sol
+### [info] floating-pragma — line 8
+
+    pragma solidity ^0.8.17;
+
+[...abridged — see the full report at examples/sample-report.md...]
 ```
-node soliguard.js <file.sol | dir> [--json] [--min-severity info|warning|critical]
 
---json                    emit a machine-readable JSON report
---min-severity <level>    only report findings at or above this level (default: info)
---rules                   list the implemented rules and exit
---version / -v            print version and exit
---help / -h               print help and exit
+## Installation
+
+The project is not yet published to npm, and the public repository URL is still being finalized. Until then, use it directly from a clone:
+
+<!-- TODO: repo URL once published — replace `<repo-url>` below and add the
+     repository field to package.json. The `npm install -g` / `npm link`
+     instructions below become available with the published repo. -->
+
+```bash
+git clone <repo-url>          # TODO: fill in once the repository is published
+cd soliguard
+node soliguard.js --help      # no build step, no install step required
 ```
 
-## Implemented rules (v0.1)
+## Documentation
 
-| Rule id | Severity | Detects |
-|---------|----------|---------|
-| `avoid-tx-origin` | warning | `tx.origin` used (phishing-prone authorization) |
-| `unsafe-low-level-calls` | warning | `.call` / `.delegatecall` / `.send` / `.transfer` usage |
-| `floating-pragma` | info | non-pinned pragma (`^`, `>=`, `<`, …) |
-| `missing-zero-address-check` | warning | address params used without an `address(0)` guard |
-| `unbounded-loop` | warning | `for` loop bound not tied to a fixed literal/constant |
-| `selfdestruct-usage` | critical | `selfdestruct` (contract destruction) |
-| `hardcoded-address` | warning | raw 40-hex address literal outside a constant |
-| `timestamp-dependence` | warning | `block.timestamp` / `now` in a comparison |
-| `missing-visibility` | info | state variables / functions without explicit visibility |
-| `deprecated-keywords` | info/warning | `suicide` alias (info), `blockhash` (warning) |
-| `assembly-usage` | info | inline `assembly { }` blocks |
+- [RULES.md](RULES.md) — rule-by-rule reference: what each rule detects, why, with code examples
+- [TECHNICAL_SUMMARY.md](TECHNICAL_SUMMARY.md) — architecture, scan pipeline, and design decisions
+- [CONTRIBUTING.md](CONTRIBUTING.md) — how to add a new rule and contribute
+- [CHANGELOG.md](CHANGELOG.md) — version history
+- [SECURITY.md](SECURITY.md) — responsible disclosure and known limitations
 
-Details, why-it-matters, and examples for every rule: **[RULES.md](RULES.md)**.
+## Honesty notice
 
-## Limitations (read before trusting output)
-
-- **Heuristic, not exhaustive.** SoliGuard is a pattern scanner, not a data-flow or symbolic analyzer. A clean report does **not** mean the contract is secure.
-- **False positives are expected.** For example, `unsafe-low-level-calls` can match high-level ERC-20 `.transfer(...)` calls (usually fine), and `missing-zero-address-check` can miss validation written in a way the heuristic body scan doesn't recognize.
-- **False negatives are expected too.** Anything outside the 11 rules — integer overflow/underflow logic, complex reentrancy paths, access-control design flaws, upgradeability issues — is simply not scanned.
-- **Multi-line constructs may be missed.** Heuristics are line-oriented: e.g. a `for` loop whose header spans several lines, or a function signature spread over many lines, may not match.
-- **`internal`/`private` functions are skipped** by `missing-zero-address-check` by design (validation is expected at the externally-callable entry points).
-- **This tool is a pre-audit screening step, not a substitute for a professional security audit.** Treat every finding as a lead to investigate manually.
+SoliGuard is heuristic by design and documented as a **pre-audit screening tool** — never a substitute for a professional audit. It is a pattern matcher, not a verifier: it can miss real vulnerabilities (especially logic bugs) and it can flag code that is perfectly safe. Every finding must be reviewed by a human. The project makes no claim of audit-grade coverage.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
-
-## Technical summary
-
-For the curious (and for the grant proposal this project is built around): see [TECHNICAL_SUMMARY.md](TECHNICAL_SUMMARY.md).
+[MIT](LICENSE) © 2026 SoliGuard contributors
