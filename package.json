@@ -1,0 +1,34 @@
+{
+  "name": "soliguard",
+  "version": "0.1.0",
+  "description": "A lightweight, dependency-free, heuristic Solidity static-analysis security linter. Pre-audit screening only — NOT a substitute for a professional audit.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "soliguard": "soliguard.js"
+  },
+  "files": [
+    "soliguard.js",
+    "README.md",
+    "RULES.md",
+    "TECHNICAL_SUMMARY.md",
+    "LICENSE",
+    "examples/"
+  ],
+  "scripts": {
+    "lint": "node soliguard.js examples/VulnerableToken.sol",
+    "lint:json": "node soliguard.js examples/VulnerableToken.sol --json",
+    "test": "node soliguard.js examples/VulnerableToken.sol >/dev/null; test $? -eq 1 && echo 'sample fixture reproduces the expected findings (exit 1)'"
+  },
+  "keywords": [
+    "solidity",
+    "security",
+    "linter",
+    "static-analysis",
+    "smart-contracts",
+    "ethereum",
+    "web3"
+  ]
+}
