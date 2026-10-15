@@ -14,11 +14,9 @@ Do not rely on a "clean" SoliGuard report as a security guarantee, and do not cl
 
 If you find a bug in SoliGuard itself (a rule that crashes on valid input, incorrect output, a false-negative that a heuristic *could* reasonably catch, or a security issue in the tooling), please report it privately.
 
-Until the public repository is published, report to the project maintainers directly:
+Report it via GitHub's private vulnerability reporting on the repository:
 
-<!-- TODO: repo URL / security contact once published — replace this block with
-     the project's GitHub Security Advisory link (https://github.com/OWNER/REPO/security/advisories/new)
-     or the maintainers' preferred contact address. -->
+https://github.com/cybrsecuritesolutions/soliguard/security/advisories/new
 
 **What to include in a report:**
 

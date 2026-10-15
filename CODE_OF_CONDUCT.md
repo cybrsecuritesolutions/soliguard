@@ -35,8 +35,7 @@ This Code of Conduct applies within all project spaces (issues, pull requests, d
 
 Instances of abusive, harassing, or otherwise unacceptable behaviour may be reported to the maintainers by contacting them privately.
 
-<!-- TODO: repo URL / enforcement contact once published — add the maintainers'
-     contact address or a link to the repository's contact address. -->
+Reports may be submitted through the GitHub repository: https://github.com/cybrsecuritesolutions/soliguard
 
 All complaints will be reviewed and investigated promptly and fairly. Maintainers who do not follow or enforce the Code of Conduct in good faith may face temporary or permanent consequences as determined by the project leadership.
 

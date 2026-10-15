@@ -4,9 +4,7 @@
 
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D%2018-brightgreen.svg)
-[![CI: GitHub Actions](https://img.shields.io/badge/CI-github%20actions-2088FF)](.github/workflows/ci.yml)
-<!-- TODO: once the repository URL is known, replace the CI badge above with a live
-     workflow-status badge, e.g. https://img.shields.io/github/actions/workflow/status/OWNER/REPO/ci.yml -->
+[![CI: GitHub Actions](https://img.shields.io/github/actions/workflow/status/cybrsecuritesolutions/soliguard/ci.yml)](.github/workflows/ci.yml)
 
 SoliGuard scans Solidity source for common vulnerability patterns and reports them with line numbers, severity, and actionable explanations. It runs on plain Node.js >= 18 — zero runtime dependencies, no compiler required.
 
@@ -95,14 +93,10 @@ Generated: 2026-10-15T02:51:29.830Z
 
 ## Installation
 
-The project is not yet published to npm, and the public repository URL is still being finalized. Until then, use it directly from a clone:
-
-<!-- TODO: repo URL once published — replace `<repo-url>` below and add the
-     repository field to package.json. The `npm install -g` / `npm link`
-     instructions below become available with the published repo. -->
+The project is not yet published to npm. Use it directly from the repository:
 
 ```bash
-git clone <repo-url>          # TODO: fill in once the repository is published
+git clone https://github.com/cybrsecuritesolutions/soliguard.git
 cd soliguard
 node soliguard.js --help      # no build step, no install step required
 ```
