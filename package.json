@@ -14,13 +14,16 @@
     "README.md",
     "RULES.md",
     "TECHNICAL_SUMMARY.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "CHANGELOG.md",
     "LICENSE",
     "examples/"
   ],
   "scripts": {
+    "test": "node --test test/*.test.js",
     "lint": "node soliguard.js examples/VulnerableToken.sol",
-    "lint:json": "node soliguard.js examples/VulnerableToken.sol --json",
-    "test": "node soliguard.js examples/VulnerableToken.sol >/dev/null; test $? -eq 1 && echo 'sample fixture reproduces the expected findings (exit 1)'"
+    "lint:json": "node soliguard.js examples/VulnerableToken.sol --json"
   },
   "keywords": [
     "solidity",
@@ -30,5 +33,9 @@
     "smart-contracts",
     "ethereum",
     "web3"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": ""
+  }
 }
